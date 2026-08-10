@@ -169,6 +169,41 @@ function formataData(iso) {
   return d.toLocaleDateString('ca-ES', { day: '2-digit', month: 'short' });
 }
 
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    let settled = false;
+    let timer;
+    const cleanup = () => {
+      delete window[cbName];
+      script.remove();
+      clearTimeout(timer);
+    };
+    window[cbName] = (data) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(data);
+    };
+    timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Temps d\u2019espera exhaurit'));
+    }, 15000);
+    script.onerror = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('No s\u2019ha pogut carregar (comprova la URL)'));
+    };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + cbName;
+    document.body.appendChild(script);
+  });
+}
+
 function App() {
   const [scriptUrl, setScriptUrl] = useState(() => localStorage.getItem(STORAGE_KEY) || '');
   const [urlInput, setUrlInput] = useState('');
@@ -202,13 +237,12 @@ function App() {
   const carregaProjectes = useCallback(async (url) => {
     setCarregant(true); setError('');
     try {
-      const res = await fetch(`${url}?action=projectes`);
-      const data = await res.json();
+      const data = await jsonp(`${url}?action=projectes`);
       const llista = data.projectes || [];
       setProjectes(llista);
       if (llista.length) setProjecteActiu((p) => p || llista[0]);
     } catch (e) {
-      setError('No s\u2019ha pogut connectar amb el full de c\u00e0lcul. [Detall: ' + e.message + ']');
+      setError('No s\u2019ha pogut connectar amb el full de c\u00e0lcul. Comprova la URL. [' + e.message + ']');
     } finally { setCarregant(false); }
   }, []);
 
@@ -216,12 +250,11 @@ function App() {
     if (!url || !projecte) return;
     setCarregant(true); setError('');
     try {
-      const res = await fetch(`${url}?action=despeses&projecte=${encodeURIComponent(projecte)}`);
-      const data = await res.json();
+      const data = await jsonp(`${url}?action=despeses&projecte=${encodeURIComponent(projecte)}`);
       const files = (data.despeses || []).slice().sort((a, b) => (a.data < b.data ? 1 : -1));
       setDespeses(files);
     } catch (e) {
-      setError('No s\u2019han pogut carregar les despeses. [Detall: ' + e.message + ']');
+      setError('No s\u2019han pogut carregar les despeses. [' + e.message + ']');
     } finally { setCarregant(false); }
   }, []);
 
@@ -253,36 +286,27 @@ function App() {
     const valor = parseFloat(importText.replace(',', '.'));
     if (!concepte.trim() || !valor || valor <= 0 || !projecteActiu) return;
     setEnviant(true); setError('');
-    const cos = {
+    const params = new URLSearchParams({
       action: 'afegir', projecte: projecteActiu, data: new Date().toISOString().slice(0, 10),
-      concepte: concepte.trim(), categoria: categoria || 'altres', import_: valor,
-    };
+      concepte: concepte.trim(), categoria: categoria || 'altres', import_: String(valor),
+    });
     try {
-      const res = await fetch(scriptUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(cos),
-      });
-      const data = await res.json();
+      const data = await jsonp(`${scriptUrl}?${params.toString()}`);
       if (data.ok) {
         setConcepte(''); setImportText(''); setCategoria(null); setCategoriaManual(false);
         carregaDespeses(scriptUrl, projecteActiu);
         conceptRef.current && conceptRef.current.focus();
       } else { setError('No s\u2019ha pogut desar la despesa.'); }
-    } catch (e) { setError('No s\u2019ha pogut desar. Comprova la connexi\u00f3.'); }
+    } catch (e) { setError('No s\u2019ha pogut desar. [' + e.message + ']'); }
     finally { setEnviant(false); }
   };
 
   const esborraDespesa = async (id) => {
     setCarregant(true);
     try {
-      await fetch(scriptUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'esborrar', id }),
-      });
+      await jsonp(`${scriptUrl}?action=esborrar&id=${encodeURIComponent(id)}`);
       setDespeses((prev) => prev.filter((d) => d.id !== id));
-    } catch (e) { setError('No s\u2019ha pogut esborrar.'); }
+    } catch (e) { setError('No s\u2019ha pogut esborrar. [' + e.message + ']'); }
     finally { setCarregant(false); setConfirmaEsborrat(null); }
   };
 
