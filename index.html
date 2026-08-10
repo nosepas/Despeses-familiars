@@ -208,7 +208,7 @@ function App() {
       setProjectes(llista);
       if (llista.length) setProjecteActiu((p) => p || llista[0]);
     } catch (e) {
-      setError('No s\u2019ha pogut connectar amb el full de c\u00e0lcul. Comprova la URL.');
+      setError('No s\u2019ha pogut connectar amb el full de c\u00e0lcul. [Detall: ' + e.message + ']');
     } finally { setCarregant(false); }
   }, []);
 
@@ -221,7 +221,7 @@ function App() {
       const files = (data.despeses || []).slice().sort((a, b) => (a.data < b.data ? 1 : -1));
       setDespeses(files);
     } catch (e) {
-      setError('No s\u2019han pogut carregar les despeses.');
+      setError('No s\u2019han pogut carregar les despeses. [Detall: ' + e.message + ']');
     } finally { setCarregant(false); }
   }, []);
 
