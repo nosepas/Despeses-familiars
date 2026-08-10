@@ -227,6 +227,7 @@ function App() {
   const [showPicker, setShowPicker] = useState(false);
   const [enviant, setEnviant] = useState(false);
   const [confirmaEsborrat, setConfirmaEsborrat] = useState(null);
+  const [editantId, setEditantId] = useState(null);
 
   const conceptRef = useRef(null);
 
@@ -299,6 +300,17 @@ function App() {
       } else { setError('No s\u2019ha pogut desar la despesa.'); }
     } catch (e) { setError('No s\u2019ha pogut desar. [' + e.message + ']'); }
     finally { setEnviant(false); }
+  };
+
+  const editaCategoria = async (id, novaCategoria) => {
+    const anterior = despeses;
+    setDespeses((prev) => prev.map((d) => (d.id === id ? { ...d, categoria: novaCategoria } : d)));
+    try {
+      await jsonp(`${scriptUrl}?action=editar&id=${encodeURIComponent(id)}&categoria=${encodeURIComponent(novaCategoria)}`);
+    } catch (e) {
+      setDespeses(anterior);
+      setError('No s\u2019ha pogut actualitzar la categoria. [' + e.message + ']');
+    }
   };
 
   const esborraDespesa = async (id) => {
@@ -401,7 +413,7 @@ function App() {
                 const cat = catPerId(d.categoria);
                 return (
                   <div key={d.id} className="ticket-card">
-                    <div className="cat-circle" style={{background:cat.bg}}>{cat.emoji}</div>
+                    <button className="cat-circle" style={{background:cat.bg}} onClick={()=>{ setEditantId(d.id); setShowPicker(true); }}>{cat.emoji}</button>
                     <div className="ticket-info">
                       <div className="ticket-title">{d.concepte}</div>
                       <div className="ticket-meta mono">{formataData(d.data)} · {cat.nom}</div>
@@ -476,15 +488,24 @@ function App() {
       )}
 
       {showPicker && (
-        <div className="overlay" onClick={()=>setShowPicker(false)}>
+        <div className="overlay" onClick={()=>{ setShowPicker(false); setEditantId(null); }}>
           <div className="sheet" onClick={(e)=>e.stopPropagation()}>
             <div className="sheet-handle"></div>
-            <h3 className="display">Tria una categoria</h3>
+            <h3 className="display">{editantId ? 'Canvia la categoria' : 'Tria una categoria'}</h3>
             <div className="cat-grid">
               {CATEGORIES.map((cat) => (
                 <button key={cat.id} className="cat-grid-item"
-                  style={{background: cat.id===categoria ? cat.bg : '#F9F9F8'}}
-                  onClick={()=>{ setCategoria(cat.id); setCategoriaManual(true); setShowPicker(false); }}>
+                  style={{background: cat.id===(editantId ? (despeses.find((d)=>d.id===editantId)||{}).categoria : categoria) ? cat.bg : '#F9F9F8'}}
+                  onClick={()=>{
+                    if (editantId) {
+                      editaCategoria(editantId, cat.id);
+                      setEditantId(null);
+                    } else {
+                      setCategoria(cat.id);
+                      setCategoriaManual(true);
+                    }
+                    setShowPicker(false);
+                  }}>
                   <div className="cat-circle" style={{background:cat.bg}}>{cat.emoji}</div>
                   <span className="name">{cat.nom}</span>
                 </button>
