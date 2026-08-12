@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Despeses de viatge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: #EAF2EE; }
+  body { font-family: 'DM Sans', sans-serif; color: #292524; }
+  input, button { font-family: inherit; }
+  input:focus { outline: none; }
+  button { cursor: pointer; border: none; background: none; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .display { font-family: 'Space Grotesk', sans-serif; }
+
+  .app { max-width: 440px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 88px; background: #EAF2EE; }
+
+  .config-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .config-box { width: 100%; max-width: 360px; }
+  .config-logo { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 28px; }
+  .config-card { background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid #F0EEE9; }
+  .config-card h2 { font-size: 16px; margin-bottom: 4px; color: #1C1917; }
+  .config-card p { font-size: 13px; color: #78716C; margin-bottom: 16px; line-height: 1.5; }
+  .text-input { width: 100%; border: 1px solid #E7E5E4; border-radius: 14px; padding: 13px 14px; font-size: 14px; margin-bottom: 16px; }
+  .text-input:focus { border-color: #0F766E; }
+  .btn-primary { width: 100%; border-radius: 14px; padding: 14px; font-weight: 600; font-size: 14px; color: #fff; background: #0F4C4A; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary:disabled { opacity: 0.4; }
+  .btn-text { width: 100%; text-align: center; font-size: 13px; color: #A8A29E; margin-top: 10px; padding: 6px; }
+
+  .header { background: #0F4C4A; padding: 22px 20px 18px; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .header-brand { display: flex; align-items: center; gap: 8px; }
+  .header-brand span { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #9FCFC9; }
+  .header-project { display: flex; align-items: center; gap: 6px; margin-top: 8px; background: none; }
+  .header-project span { font-size: 22px; font-weight: 700; color: #fff; }
+  .settings-btn { font-size: 18px; }
+
+  .error-banner { margin: 16px 20px 0; display: flex; gap: 8px; align-items: flex-start; background: #FEF2F2; border: 1px solid #FEE2E2; color: #B91C1C; font-size: 13px; border-radius: 14px; padding: 10px 12px; }
+
+  .content { flex: 1; padding: 20px 20px 0; }
+
+  .field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #A8A29E; margin-bottom: 6px; display: block; }
+  .concept-input { width: 100%; background: #fff; border: 1px solid #E7E5E4; border-radius: 18px; padding: 14px 16px; font-size: 16px; margin-bottom: 16px; }
+  .import-wrap { position: relative; margin-bottom: 16px; }
+  .import-input { width: 100%; background: #fff; border: 1px solid #E7E5E4; border-radius: 18px; padding: 14px 40px 14px 16px; font-size: 24px; }
+  .import-suffix { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #A8A29E; font-size: 18px; }
+
+  .category-select { width: 100%; display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #E7E5E4; border-radius: 18px; padding: 12px 16px; margin-bottom: 24px; }
+  .cat-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+  .cat-text { flex: 1; text-align: left; }
+  .cat-text .name { font-size: 14px; font-weight: 600; }
+  .cat-text .hint { font-size: 11px; color: #A8A29E; }
+  .cat-change { font-size: 12px; font-weight: 600; color: #0F766E; }
+
+  .submit-btn { width: 100%; border-radius: 18px; padding: 16px; font-weight: 600; font-size: 16px; color: #fff; background: #0F4C4A; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .submit-btn:disabled { opacity: 0.4; }
+
+  .nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 440px; margin: 0 auto; background: #fff; border-top: 1px solid #F0EEE9; display: flex; }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 0; }
+  .nav-btn .icon { font-size: 18px; }
+  .nav-btn .label { font-size: 11px; font-weight: 500; color: #B7B2A9; }
+  .nav-btn.active .label, .nav-btn.active .icon { color: #0F4C4A; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(15,25,23,0.45); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .sheet { width: 100%; max-width: 440px; background: #fff; border-radius: 24px 24px 0 0; padding: 20px 20px 32px; animation: pujar 0.18s ease-out; max-height: 80vh; overflow-y: auto; }
+  @keyframes pujar { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: #E7E5E4; margin: 0 auto 16px; }
+  .sheet h3 { font-size: 16px; margin-bottom: 12px; }
+
+  .project-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; margin-bottom: 16px; }
+  .project-item { text-align: left; padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 500; background: #F5F5F4; color: #292524; }
+  .project-item.active { background: #EAF6F5; color: #0F766E; }
+  .new-project-row { display: flex; gap: 8px; }
+  .new-project-row .text-input { margin-bottom: 0; flex: 1; }
+  .add-project-btn { width: 46px; border-radius: 14px; background: #0F4C4A; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .add-project-btn:disabled { opacity: 0.4; }
+
+  .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .cat-grid-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 4px; border-radius: 14px; background: #F9F9F8; }
+  .cat-grid-item .cat-circle { width: 38px; height: 38px; }
+  .cat-grid-item .name { font-size: 11px; font-weight: 500; text-align: center; line-height: 1.2; color: #44403C; }
+
+  .expense-list { display: flex; flex-direction: column; gap: 10px; }
+  .ticket-card { background: #fff; border-radius: 18px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .ticket-info { flex: 1; min-width: 0; }
+  .ticket-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ticket-meta { font-size: 11px; color: #A8A29E; }
+  .ticket-amount { font-size: 15px; font-weight: 600; color: #0F4C4A; flex-shrink: 0; }
+  .delete-btn { padding: 6px; font-size: 15px; flex-shrink: 0; color: #D6D3D1; }
+  .confirm-btn { background: #DC2626; color: #fff; font-size: 11px; font-weight: 600; padding: 8px 10px; border-radius: 8px; flex-shrink: 0; }
+
+  .empty-state { text-align: center; color: #A8A29E; font-size: 14px; padding: 64px 20px; }
+
+  .spinner-wrap { display: flex; justify-content: center; padding: 64px 0; }
+  .spinner { width: 22px; height: 22px; border: 2.5px solid #D6E8E5; border-top-color: #0F766E; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .total-card { background: #fff; border-radius: 20px; padding: 26px 20px; margin-bottom: 20px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .total-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #A8A29E; margin-bottom: 4px; }
+  .total-card .amount { font-size: 34px; font-weight: 700; color: #0F4C4A; }
+  .total-card .count { font-size: 12px; color: #A8A29E; margin-top: 4px; }
+
+  .summary-row { margin-bottom: 16px; }
+  .summary-row-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .summary-row-top .cat-name { font-size: 14px; font-weight: 500; flex: 1; }
+  .summary-row-top .cat-amount { font-size: 14px; font-weight: 600; }
+  .summary-row-top .cat-pct { font-size: 12px; color: #A8A29E; width: 38px; text-align: right; }
+  .bar-bg { width: 100%; height: 8px; border-radius: 4px; background: #F0EEE9; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<script>const {
+  useState,
+  useEffect,
+  useCallback,
+  useRef
+} = React;
+const CATEGORIES = [{
+  id: 'supermercat',
+  nom: 'Supermercat',
+  emoji: '\u{1F6D2}',
+  bg: '#EAF6EC',
+  color: '#2E9E5B',
+  paraules: ['supermercat', 'mercadona', 'carrefour', 'lidl', 'super', 'queviures', 'condis', 'eroski', 'dia']
+}, {
+  id: 'restaurants',
+  nom: 'Restaurants',
+  emoji: '\u{1F37D}\uFE0F',
+  bg: '#FBEFE3',
+  color: '#C2760C',
+  paraules: ['restaurant', 'sopar', 'dinar', 'bar', 'terrassa', 'tapes', 'pizza', 'hamburgueseria', 'menu del dia', 'cerveseria', 'brunch']
+}, {
+  id: 'allotjament',
+  nom: 'Allotjament',
+  emoji: '\u{1F3E8}',
+  bg: '#EAF6F5',
+  color: '#0F766E',
+  paraules: ['hotel', 'allotjament', 'airbnb', 'hostal', 'apartament', 'booking', 'habitacio', 'hostatge', 'lloguer casa']
+}, {
+  id: 'transport',
+  nom: 'Transport',
+  emoji: '\u26FD',
+  bg: '#FEF3E2',
+  color: '#B45309',
+  paraules: ['gasolina', 'benzina', 'combustible', 'diesel', 'parquing', 'aparcament', 'taxi', 'uber', 'cabify', 'tren', 'avio', 'vol', 'autobus', 'lloguer cotxe', 'ferry', 'bus', 'metro']
+}, {
+  id: 'peatges',
+  nom: 'Peatges',
+  emoji: '\u{1F6E3}\uFE0F',
+  bg: '#F0EEE9',
+  color: '#57534E',
+  paraules: ['peatge', 'autopista', 'toll', 'via t']
+}, {
+  id: 'entrades',
+  nom: 'Entrades',
+  emoji: '\u{1F39F}\uFE0F',
+  bg: '#EAF1FB',
+  color: '#2563EB',
+  paraules: ['entrada', 'entrades', 'museu', 'parc tematic', 'tour', 'visita guiada', 'monument', 'atraccio', 'zoo', 'aquarium']
+}, {
+  id: 'oci',
+  nom: 'Oci',
+  emoji: '\u{1F389}',
+  bg: '#F3EAFB',
+  color: '#7C3AED',
+  paraules: ['oci', 'cinema', 'discoteca', 'copes', 'festa', 'concert', 'excursio', 'spa', 'massatge', 'platja', 'lloguer bici']
+}, {
+  id: 'compres',
+  nom: 'Compres',
+  emoji: '\u{1F381}',
+  bg: '#FCEAF3',
+  color: '#DB2777',
+  paraules: ['record', 'records', 'regal', 'regals', 'souvenir', 'botiga', 'roba']
+}, {
+  id: 'alimentacio',
+  nom: 'Alimentaci\u00f3',
+  emoji: '\u{1F956}',
+  bg: '#FDECEA',
+  color: '#DC5B2E',
+  paraules: ['alimentacio', 'menjar', 'fruita', 'verdura', 'pa', 'entrepa', 'gelat', 'beguda', 'aigua', 'cafe', 'esmorzar', 'picnic', 'forn']
+}, {
+  id: 'altres',
+  nom: 'Altres',
+  emoji: '\u2022\u2022\u2022',
+  bg: '#EFEFEF',
+  color: '#6B7280',
+  paraules: []
+}];
+const catPerId = id => CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length - 1];
+const STORAGE_KEY = 'despeses_viatge_script_url';
+function normalitza(text) {
+  return text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function detectaCategoria(concepte) {
+  if (!concepte) return null;
+  const text = normalitza(concepte);
+  for (const cat of CATEGORIES) {
+    if (cat.paraules.some(p => text.includes(p))) return cat.id;
+  }
+  return null;
+}
+function formataImport(n) {
+  const num = Number(n) || 0;
+  return num.toLocaleString('ca-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) + ' \u20AC';
+}
+function formataData(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString('ca-ES', {
+    day: '2-digit',
+    month: 'short'
+  });
+}
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    let settled = false;
+    let timer;
+    const cleanup = () => {
+      delete window[cbName];
+      script.remove();
+      clearTimeout(timer);
+    };
+    window[cbName] = data => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(data);
+    };
+    timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Temps d\u2019espera exhaurit'));
+    }, 15000);
+    script.onerror = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('No s\u2019ha pogut carregar (comprova la URL)'));
+    };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + cbName;
+    document.body.appendChild(script);
+  });
+}
+function App() {
+  const [scriptUrl, setScriptUrl] = useState(() => localStorage.getItem(STORAGE_KEY) || '');
+  const [urlInput, setUrlInput] = useState('');
+  const [showConfig, setShowConfig] = useState(false);
+  const [projectes, setProjectes] = useState([]);
+  const [projecteActiu, setProjecteActiu] = useState('');
+  const [showProjectes, setShowProjectes] = useState(false);
+  const [nouProjecte, setNouProjecte] = useState('');
+  const [despeses, setDespeses] = useState([]);
+  const [carregant, setCarregant] = useState(false);
+  const [error, setError] = useState('');
+  const [vista, setVista] = useState('afegir');
+  const [concepte, setConcepte] = useState('');
+  const [importText, setImportText] = useState('');
+  const [categoria, setCategoria] = useState(null);
+  const [categoriaManual, setCategoriaManual] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
+  const [enviant, setEnviant] = useState(false);
+  const [confirmaEsborrat, setConfirmaEsborrat] = useState(null);
+  const [editantId, setEditantId] = useState(null);
+  const conceptRef = useRef(null);
+  useEffect(() => {
+    if (!categoriaManual) setCategoria(detectaCategoria(concepte));
+  }, [concepte, categoriaManual]);
+  const carregaProjectes = useCallback(async url => {
+    setCarregant(true);
+    setError('');
+    try {
+      const data = await jsonp(`${url}?action=projectes`);
+      const llista = data.projectes || [];
+      setProjectes(llista);
+      if (llista.length) setProjecteActiu(p => p || llista[0]);
+    } catch (e) {
+      setError('No s\u2019ha pogut connectar amb el full de c\u00e0lcul. Comprova la URL. [' + e.message + ']');
+    } finally {
+      setCarregant(false);
+    }
+  }, []);
+  const carregaDespeses = useCallback(async (url, projecte) => {
+    if (!url || !projecte) return;
+    setCarregant(true);
+    setError('');
+    try {
+      const data = await jsonp(`${url}?action=despeses&projecte=${encodeURIComponent(projecte)}`);
+      const files = (data.despeses || []).slice().sort((a, b) => a.data < b.data ? 1 : -1);
+      setDespeses(files);
+    } catch (e) {
+      setError('No s\u2019han pogut carregar les despeses. [' + e.message + ']');
+    } finally {
+      setCarregant(false);
+    }
+  }, []);
+  useEffect(() => {
+    if (scriptUrl) carregaProjectes(scriptUrl);
+  }, [scriptUrl, carregaProjectes]);
+  useEffect(() => {
+    if (scriptUrl && projecteActiu) carregaDespeses(scriptUrl, projecteActiu);
+  }, [scriptUrl, projecteActiu, carregaDespeses]);
+  const connecta = () => {
+    if (urlInput.trim()) {
+      const url = urlInput.trim();
+      localStorage.setItem(STORAGE_KEY, url);
+      setScriptUrl(url);
+      setShowConfig(false);
+    }
+  };
+  const triaProjecte = p => {
+    setProjecteActiu(p);
+    setShowProjectes(false);
+    setNouProjecte('');
+  };
+  const creaProjecte = () => {
+    const nom = nouProjecte.trim();
+    if (!nom) return;
+    if (!projectes.includes(nom)) setProjectes(prev => [nom, ...prev]);
+    setProjecteActiu(nom);
+    setDespeses([]);
+    setShowProjectes(false);
+    setNouProjecte('');
+  };
+  const afegirDespesa = async () => {
+    const valor = parseFloat(importText.replace(',', '.'));
+    if (!concepte.trim() || !valor || valor <= 0 || !projecteActiu) return;
+    setEnviant(true);
+    setError('');
+    const params = new URLSearchParams({
+      action: 'afegir',
+      projecte: projecteActiu,
+      data: new Date().toISOString().slice(0, 10),
+      concepte: concepte.trim(),
+      categoria: categoria || 'altres',
+      import_: String(valor)
+    });
+    try {
+      const data = await jsonp(`${scriptUrl}?${params.toString()}`);
+      if (data.ok) {
+        setConcepte('');
+        setImportText('');
+        setCategoria(null);
+        setCategoriaManual(false);
+        carregaDespeses(scriptUrl, projecteActiu);
+        conceptRef.current && conceptRef.current.focus();
+      } else {
+        setError('No s\u2019ha pogut desar la despesa.');
+      }
+    } catch (e) {
+      setError('No s\u2019ha pogut desar. [' + e.message + ']');
+    } finally {
+      setEnviant(false);
+    }
+  };
+  const editaCategoria = async (id, novaCategoria) => {
+    const anterior = despeses;
+    setDespeses(prev => prev.map(d => d.id === id ? {
+      ...d,
+      categoria: novaCategoria
+    } : d));
+    try {
+      await jsonp(`${scriptUrl}?action=editar&id=${encodeURIComponent(id)}&categoria=${encodeURIComponent(novaCategoria)}`);
+    } catch (e) {
+      setDespeses(anterior);
+      setError('No s\u2019ha pogut actualitzar la categoria. [' + e.message + ']');
+    }
+  };
+  const esborraDespesa = async id => {
+    setCarregant(true);
+    try {
+      await jsonp(`${scriptUrl}?action=esborrar&id=${encodeURIComponent(id)}`);
+      setDespeses(prev => prev.filter(d => d.id !== id));
+    } catch (e) {
+      setError('No s\u2019ha pogut esborrar. [' + e.message + ']');
+    } finally {
+      setCarregant(false);
+      setConfirmaEsborrat(null);
+    }
+  };
+  const total = despeses.reduce((s, d) => s + (Number(d.import_) || 0), 0);
+  const perCategoria = CATEGORIES.map(cat => {
+    const suma = despeses.filter(d => d.categoria === cat.id).reduce((s, d) => s + (Number(d.import_) || 0), 0);
+    return {
+      ...cat,
+      suma,
+      pct: total ? suma / total * 100 : 0
+    };
+  }).filter(c => c.suma > 0).sort((a, b) => b.suma - a.suma);
+  const catActual = catPerId(categoria);
+  if (!scriptUrl || showConfig) {
+    return React.createElement("div", {
+      className: "config-screen"
+    }, React.createElement("div", {
+      className: "config-box"
+    }, React.createElement("div", {
+      className: "config-logo"
+    }, React.createElement("span", {
+      style: {
+        fontSize: '26px'
+      }
+    }, "✈️"), React.createElement("span", {
+      className: "display",
+      style: {
+        fontWeight: 700,
+        fontSize: '20px',
+        color: '#0F4C4A'
+      }
+    }, "Despeses de viatge")), React.createElement("div", {
+      className: "config-card"
+    }, React.createElement("h2", {
+      className: "display"
+    }, "Connecta el full de càlcul"), React.createElement("p", null, "Enganxa aquí la URL de l'aplicació web de l'Apps Script, publicada des del teu Google Sheets."), React.createElement("input", {
+      type: "text",
+      className: "text-input mono",
+      value: urlInput,
+      onChange: e => setUrlInput(e.target.value),
+      placeholder: "https://script.google.com/macros/s/..."
+    }), React.createElement("button", {
+      className: "btn-primary display",
+      onClick: connecta,
+      disabled: !urlInput.trim()
+    }, "Connecta"), scriptUrl && React.createElement("button", {
+      className: "btn-text",
+      onClick: () => setShowConfig(false)
+    }, "Cancel·la"))));
+  }
+  return React.createElement("div", {
+    className: "app"
+  }, React.createElement("div", {
+    className: "header"
+  }, React.createElement("div", {
+    className: "header-top"
+  }, React.createElement("div", {
+    className: "header-brand"
+  }, React.createElement("span", {
+    style: {
+      fontSize: '18px'
+    }
+  }, "✈️"), React.createElement("span", null, "Despeses de viatge")), React.createElement("button", {
+    className: "settings-btn",
+    onClick: () => {
+      setUrlInput(scriptUrl);
+      setShowConfig(true);
+    }
+  }, "⚙️")), React.createElement("button", {
+    className: "header-project",
+    onClick: () => setShowProjectes(true)
+  }, React.createElement("span", null, projecteActiu || 'Tria un projecte'), React.createElement("span", {
+    style: {
+      color: '#fff'
+    }
+  }, "▾"))), error && React.createElement("div", {
+    className: "error-banner"
+  }, React.createElement("span", null, "⚠️"), React.createElement("span", null, error)), React.createElement("div", {
+    className: "content"
+  }, vista === 'afegir' && React.createElement("div", null, !projecteActiu && React.createElement("p", {
+    style: {
+      fontSize: '13px',
+      color: '#78716C',
+      marginBottom: '16px'
+    }
+  }, "Crea o tria un projecte a dalt per començar a afegir despeses."), React.createElement("label", {
+    className: "field-label"
+  }, "Concepte"), React.createElement("input", {
+    ref: conceptRef,
+    type: "text",
+    inputMode: "text",
+    className: "concept-input",
+    value: concepte,
+    onChange: e => setConcepte(e.target.value),
+    placeholder: "Ex: Sopar a la platja"
+  }), React.createElement("label", {
+    className: "field-label"
+  }, "Import"), React.createElement("div", {
+    className: "import-wrap"
+  }, React.createElement("input", {
+    type: "text",
+    inputMode: "decimal",
+    className: "import-input mono",
+    value: importText,
+    onChange: e => setImportText(e.target.value.replace(/[^0-9.,]/g, '')),
+    placeholder: "0,00"
+  }), React.createElement("span", {
+    className: "import-suffix"
+  }, "€")), React.createElement("label", {
+    className: "field-label"
+  }, "Categoria"), React.createElement("button", {
+    className: "category-select",
+    onClick: () => setShowPicker(true)
+  }, React.createElement("div", {
+    className: "cat-circle",
+    style: {
+      background: catActual.bg
+    }
+  }, catActual.emoji), React.createElement("div", {
+    className: "cat-text"
+  }, React.createElement("div", {
+    className: "name"
+  }, catActual.nom), React.createElement("div", {
+    className: "hint"
+  }, concepte ? 'Detectada automàticament' : 'Toca per triar')), React.createElement("span", {
+    className: "cat-change"
+  }, "Canvia")), React.createElement("button", {
+    className: "submit-btn display",
+    onClick: afegirDespesa,
+    disabled: !concepte.trim() || !(parseFloat(importText.replace(',', '.')) > 0) || !projecteActiu || enviant
+  }, enviant ? React.createElement("span", {
+    className: "spinner",
+    style: {
+      width: 16,
+      height: 16,
+      borderWidth: 2
+    }
+  }) : React.createElement("span", null, "+"), "Afegir despesa")), vista === 'llista' && (carregant && despeses.length === 0 ? React.createElement("div", {
+    className: "spinner-wrap"
+  }, React.createElement("div", {
+    className: "spinner"
+  })) : despeses.length === 0 ? React.createElement("p", {
+    className: "empty-state"
+  }, "Encara no hi ha cap despesa registrada.") : React.createElement("div", {
+    className: "expense-list"
+  }, despeses.map(d => {
+    const cat = catPerId(d.categoria);
+    return React.createElement("div", {
+      key: d.id,
+      className: "ticket-card"
+    }, React.createElement("button", {
+      className: "cat-circle",
+      style: {
+        background: cat.bg
+      },
+      onClick: () => {
+        setEditantId(d.id);
+        setShowPicker(true);
+      }
+    }, cat.emoji), React.createElement("div", {
+      className: "ticket-info"
+    }, React.createElement("div", {
+      className: "ticket-title"
+    }, d.concepte), React.createElement("div", {
+      className: "ticket-meta mono"
+    }, formataData(d.data), " · ", cat.nom)), React.createElement("div", {
+      className: "ticket-amount mono"
+    }, formataImport(d.import_)), confirmaEsborrat === d.id ? React.createElement("button", {
+      className: "confirm-btn",
+      onClick: () => esborraDespesa(d.id)
+    }, "Segur?") : React.createElement("button", {
+      className: "delete-btn",
+      onClick: () => setConfirmaEsborrat(d.id)
+    }, "🗑️"));
+  }))), vista === 'resum' && React.createElement("div", null, React.createElement("div", {
+    className: "total-card"
+  }, React.createElement("div", {
+    className: "label"
+  }, "Total gastat"), React.createElement("div", {
+    className: "amount mono"
+  }, formataImport(total)), React.createElement("div", {
+    className: "count"
+  }, despeses.length, " despesa", despeses.length === 1 ? '' : 's')), perCategoria.length === 0 ? React.createElement("p", {
+    className: "empty-state"
+  }, "Encara no hi ha dades per mostrar.") : perCategoria.map(cat => React.createElement("div", {
+    className: "summary-row",
+    key: cat.id
+  }, React.createElement("div", {
+    className: "summary-row-top"
+  }, React.createElement("span", null, cat.emoji), React.createElement("span", {
+    className: "cat-name"
+  }, cat.nom), React.createElement("span", {
+    className: "cat-amount mono"
+  }, formataImport(cat.suma)), React.createElement("span", {
+    className: "cat-pct"
+  }, cat.pct.toFixed(0), "%")), React.createElement("div", {
+    className: "bar-bg"
+  }, React.createElement("div", {
+    className: "bar-fill",
+    style: {
+      width: `${cat.pct}%`,
+      background: cat.color
+    }
+  })))))), React.createElement("div", {
+    className: "nav"
+  }, React.createElement("button", {
+    className: `nav-btn ${vista === 'afegir' ? 'active' : ''}`,
+    onClick: () => setVista('afegir')
+  }, React.createElement("span", {
+    className: "icon"
+  }, "+"), React.createElement("span", {
+    className: "label"
+  }, "Afegir")), React.createElement("button", {
+    className: `nav-btn ${vista === 'llista' ? 'active' : ''}`,
+    onClick: () => setVista('llista')
+  }, React.createElement("span", {
+    className: "icon"
+  }, "📋"), React.createElement("span", {
+    className: "label"
+  }, "Despeses")), React.createElement("button", {
+    className: `nav-btn ${vista === 'resum' ? 'active' : ''}`,
+    onClick: () => setVista('resum')
+  }, React.createElement("span", {
+    className: "icon"
+  }, "📊"), React.createElement("span", {
+    className: "label"
+  }, "Resum"))), showProjectes && React.createElement("div", {
+    className: "overlay",
+    onClick: () => setShowProjectes(false)
+  }, React.createElement("div", {
+    className: "sheet",
+    onClick: e => e.stopPropagation()
+  }, React.createElement("div", {
+    className: "sheet-handle"
+  }), React.createElement("h3", {
+    className: "display"
+  }, "Projectes"), React.createElement("div", {
+    className: "project-list"
+  }, projectes.length === 0 && React.createElement("p", {
+    style: {
+      fontSize: '13px',
+      color: '#A8A29E'
+    }
+  }, "Encara no hi ha cap projecte."), projectes.map(p => React.createElement("button", {
+    key: p,
+    className: `project-item ${p === projecteActiu ? 'active' : ''}`,
+    onClick: () => triaProjecte(p)
+  }, p))), React.createElement("div", {
+    className: "new-project-row"
+  }, React.createElement("input", {
+    type: "text",
+    className: "text-input",
+    value: nouProjecte,
+    onChange: e => setNouProjecte(e.target.value),
+    placeholder: "Nou projecte, ex: Vacances 2026"
+  }), React.createElement("button", {
+    className: "add-project-btn",
+    onClick: creaProjecte,
+    disabled: !nouProjecte.trim()
+  }, "+")))), showPicker && React.createElement("div", {
+    className: "overlay",
+    onClick: () => {
+      setShowPicker(false);
+      setEditantId(null);
+    }
+  }, React.createElement("div", {
+    className: "sheet",
+    onClick: e => e.stopPropagation()
+  }, React.createElement("div", {
+    className: "sheet-handle"
+  }), React.createElement("h3", {
+    className: "display"
+  }, editantId ? 'Canvia la categoria' : 'Tria una categoria'), React.createElement("div", {
+    className: "cat-grid"
+  }, CATEGORIES.map(cat => React.createElement("button", {
+    key: cat.id,
+    className: "cat-grid-item",
+    style: {
+      background: cat.id === (editantId ? (despeses.find(d => d.id === editantId) || {}).categoria : categoria) ? cat.bg : '#F9F9F8'
+    },
+    onClick: () => {
+      if (editantId) {
+        editaCategoria(editantId, cat.id);
+        setEditantId(null);
+      } else {
+        setCategoria(cat.id);
+        setCategoriaManual(true);
+      }
+      setShowPicker(false);
+    }
+  }, React.createElement("div", {
+    className: "cat-circle",
+    style: {
+      background: cat.bg
+    }
+  }, cat.emoji), React.createElement("span", {
+    className: "name"
+  }, cat.nom)))))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));</script>
+</body>
+</html>
